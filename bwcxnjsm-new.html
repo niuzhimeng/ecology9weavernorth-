@@ -1,0 +1,75 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <script src="js/jquery-1.4.2.min_wev8.js"></script>
+    <title></title>
+    <script type="text/javascript">
+        $().ready(function () {
+            setHeight();
+        })
+        function setHeight() {
+            var a = document.body.clientWidth;  //取得iframe框架的实际宽度
+            var screenwidth = window.screen.width; //屏幕分辨率的宽
+            var imgwidth = 306;
+            if (screenwidth > 1900) {
+                imgwidth = 546;
+            }
+            else if (screenwidth == 1680) {
+                imgwidth = 428;
+            }
+            else if (screenwidth >= 1600 && screenwidth < 1680) {
+                imgwidth = 406;
+            }
+            else if (screenwidth == 1440) {
+                imgwidth = 356;
+            }
+            else if (screenwidth >= 1300 && screenwidth < 1400) {
+                imgwidth = 356;
+                document.getElementById("imgshow").src = "/PortalFiles/V3/images/title1366.jpg";
+            }
+            document.getElementById("imgshow").style.width = imgwidth + "px";
+        };
+		function skip(){
+			window.parent.location.href='/wui/index.html#/main/portal/portal-2-1';
+		}
+		
+    </script>
+    <style type="text/css">
+         html,body{
+             font-family: "微软雅黑";
+             font-size: 12px;
+             width: 99%;
+             height: 100%;
+             min-width: 30px;  
+             margin: 0px;
+             padding:0px;
+             background-color:#f3f7f8;
+         }
+        .div1 {
+            width:100%;
+            overflow:hidden;
+			height: 100%;
+        }
+		.img1{
+		    border: 0px;
+			width: 100% !important;
+			height: 100%;
+			cursor:pointer;
+		}
+    </style>
+</head>
+
+
+
+    <div class="div1">
+	
+			<img onclick="skip()" src="/weavernorth/mk71.jpg" id="imgshow" style="border:0px;" class="img1" />
+		
+    </div>
+
+
+
+
+
+</html>
