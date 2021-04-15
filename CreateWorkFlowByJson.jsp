@@ -24,7 +24,7 @@
     String updateSql = "update " + tableName + " set zt = ?, bz = ? where id = ?";
     try {
         long start = System.currentTimeMillis();
-        baseBean.writeLog("批量创建内网流程Start===========");
+        baseBean.writeLog("批量创建内网流程Start===========流程id： "+ workFlowId);
         recordSet.executeQuery("SELECT * FROM " + tableName + " where zt = 0 or zt IS NULL");
         baseBean.writeLog("本次需创建流程数量： " + recordSet.getCounts());
         while (recordSet.next()) {
