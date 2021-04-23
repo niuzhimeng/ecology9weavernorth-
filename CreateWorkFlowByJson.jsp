@@ -4,6 +4,9 @@
 <%@ page import="weaver.general.BaseBean" %>
 <%@ page import="weaver.general.Util" %>
 <%@ page import="weaver.workflow.webservices.*" %>
+<%@ page import="cn.hutool.core.io.IoUtil" %>
+<%@ page import="java.io.FileInputStream" %>
+<%@ page import="org.apache.axis.encoding.Base64" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" %>
 <%
     RecordSet updateSet = new RecordSet();
@@ -13,18 +16,18 @@
     WorkflowServiceImpl service = new WorkflowServiceImpl();
 
     // SJTX-科研项目支票领用单(内网)——流程id
-    String workFlowId = baseBean.getPropValue("fileToOther", "workFlowId");
+    String workFlowId = "59";
     // 建模表名
-    String tableName = baseBean.getPropValue("fileToOther", "tableName");
+    String tableName = "formtable_main_310";
     // 内网流程 —— 文件目录id
-    int muLuId = Util.getIntValue(baseBean.getPropValue("fileToOther", "muLuId"));
+    int muLuId = 92;
     // 文件上传身份 用户名 密码
-    String userName = baseBean.getPropValue("fileToOther", "userName");
-    String password = baseBean.getPropValue("fileToOther", "password");
+    String userName = "sysadmin";
+    String password = "1";
     String updateSql = "update " + tableName + " set zt = ?, bz = ? where id = ?";
     try {
         long start = System.currentTimeMillis();
-        baseBean.writeLog("批量创建内网流程Start===========流程id： "+ workFlowId);
+        baseBean.writeLog("批量创建内网流程Start===========流程id： " + workFlowId);
         recordSet.executeQuery("SELECT * FROM " + tableName + " where zt = 0 or zt IS NULL");
         baseBean.writeLog("本次需创建流程数量： " + recordSet.getCounts());
         while (recordSet.next()) {
@@ -80,13 +83,17 @@
             mainField[i].setView(true);
             mainField[i].setEdit(true);
 
-            String sessionStr = DocCreateUtil.getDocSession(userName, password);
-            String wjl = DocCreateUtil.createNewDoc(sessionStr, recordSet.getString("wjl"), muLuId);
-            baseBean.writeLog("文件id值： " + wjl);
+//            String sessionStr = DocCreateUtil.getDocSession(userName, password);
+//            String wjl = DocCreateUtil.createNewDoc(sessionStr, recordSet.getString("wjl"), muLuId);
+//            baseBean.writeLog("文件id值： " + wjl);
+            FileInputStream fileInputStream = new FileInputStream("C:\\Users\\86157\\Desktop\\test.png");
+            byte[] bytes = IoUtil.readBytes(fileInputStream);
+            fileInputStream.close();
             i++;
             mainField[i] = new WorkflowRequestTableField();
             mainField[i].setFieldName("xgfj"); // 相关附件
-            mainField[i].setFieldValue(wjl);
+            mainField[i].setFieldType("file:test.png");
+            mainField[i].setFieldValue("file:///C:/Users/86157/Desktop/test.png");
             mainField[i].setView(true);
             mainField[i].setEdit(true);
 
