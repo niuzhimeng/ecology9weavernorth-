@@ -50,7 +50,7 @@
             "\ta.id = ? \n" +
             "ORDER BY\n" +
             "\ta.id";
-    String updateSql = "insert into uf_perjob(ryid, xmmc, gwmc) values (?, ?, ?)";
+
     Map<String, String> colMap = ConnUtil.colMap;
     try {
         baseBean.writeLog("更新一人建模人员信息岗Start==" + xm);
@@ -99,15 +99,19 @@
             }
         } else {
             synchronized (ConnUtil.class) {
+                long currentTimeMillis = System.currentTimeMillis();
                 // 全部删除，新插入
-                updateSet.executeUpdate("delete from uf_perjob where ryid = ?", xm);
-                // 插入或更新到 人员 - 岗位表
-                for (Map.Entry<String, String> entry : map.entrySet()) {
-                    updateSet.executeUpdate(updateSql,
-                            xm, entry.getKey(), entry.getValue());
+                // 查询上次更新时间
+                updateSet.executeQuery("select operate_time from uf_perjob where ryid = ?", xm);
+                if (updateSet.next()) {
+                    long operate_time = getLong(updateSet.getString("operate_time"));
+                    if (currentTimeMillis - operate_time > 3000) {
+                        insert(xm, map);
+                    }
+                } else {
+                    insert(xm, map);
                 }
             }
-
         }
         baseBean.writeLog("更新一人建模人员信息岗End");
 
@@ -116,4 +120,27 @@
         baseBean.writeLog("更新建模人员信息岗位异常： " + e);
     }
 
+%>
+
+<%!
+
+    public void insert(String xm, Map<String, String> map) {
+        long currentTimeMillis = System.currentTimeMillis();
+        new BaseBean().writeLog("当前时间戳： " + currentTimeMillis);
+        RecordSet updateSet = new RecordSet();
+        updateSet.executeUpdate("delete from uf_perjob where ryid = ?", xm);
+        // 插入或更新到 人员 - 岗位表
+        for (Map.Entry<String, String> entry : map.entrySet()) {
+            updateSet.executeUpdate("insert into uf_perjob(ryid, xmmc, gwmc, operate_time) values (?, ?, ?, '" + currentTimeMillis + "')",
+                    xm, entry.getKey(), entry.getValue());
+        }
+    }
+
+    public long getLong(String s) {
+        try {
+            return Long.parseLong(s);
+        } catch (Exception e) {
+            return 0;
+        }
+    }
 %>
