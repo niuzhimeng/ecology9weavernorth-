@@ -197,8 +197,8 @@
 	%>
 </div>	
 <div class="div_show_result_area">
-	<input type=hidden id="jsonprovide" name="jsonprovide"  value='<%=array.toString()%>' />
-	
+<%--	<input type=hidden id="jsonprovide" name="jsonprovide"  value='<%=array.toString()%>' />--%>
+    <textarea style="display: none" id = 'jsonprovide'><%=array.toString()%></textarea>
     <table class="tab_show_result">
     <input type=hidden id="provideid" name="provideid"  value='' />
         <tr>
@@ -264,7 +264,7 @@
 <script src="http://code.jquery.com/jquery-1.11.0-beta1.js"></script>
 <script language=javascript>
     jQuery(document).ready(function(){
-    	var strjson = jQuery("#jsonprovide").val();
+    	var strjson = jQuery("#jsonprovide").text();
     	//alert(strjson);
     	var jsonstr = JSON.parse(strjson);
     	var leng = getJsonLength(jsonstr);
@@ -322,7 +322,7 @@
     //radio点击事件
     function radioSelect(x){
     	jQuery("#provideid").val(x);
-    	var strjson = jQuery("#jsonprovide").val();
+    	var strjson = jQuery("#jsonprovide").text();
     	var jsonstr = JSON.parse(strjson);
     	jQuery("#providename").html(jsonstr[x].name);
     	jQuery("#providecode").html(jsonstr[x].crmcode);
@@ -340,7 +340,7 @@
     //流程表单赋值
     function pareWingetData(){
     	var x = jQuery("#provideid").val();
-    	var strjson = jQuery("#jsonprovide").val();
+    	var strjson = jQuery("#jsonprovide").text();
     	var jsonstr = JSON.parse(strjson);
         parentWin.setProvideDataSAP(jsonstr[x]);
         dialog.close();
