@@ -5,6 +5,7 @@
 <jsp:useBean id="verifylogin" class="weaver.login.VerifyRtxLogin" scope="page"/>
 <%@ page language="java" contentType="text/html; charset=GBK" %>
 <%@ include file="/systeminfo/init_wev8.jsp" %>
+
 <%
     /**
      * 打开慧点流程表单
@@ -38,13 +39,17 @@
             jsonObject.put("nodename", Util.null2String(recordSet.getString("nodename")));
             // 接收人（原值）
             jsonObject.put("receiver", Util.null2String(recordSet.getString("receiver")));
+            jsonObject.put("receivets", String.valueOf(System.currentTimeMillis()));
+            jsonObject.put("isremark", "2");
+            jsonObject.put("viewtype", "1");
         }
         if (pcUrl.contains("&todoRead=1")) {
             baseBean.writeLog("待阅流程，变为已办执行=== " + jsonObject.toJSONString());
+            RecordSet recordSet1 = new RecordSet();
+            recordSet1.executeUpdate("update ofs_todo_data set isremark = 2 where id = '" + tododataid + "'");
             OfsTodoDataManagerNew manager = new OfsTodoDataManagerNew();
-            // manager.setClientIp(Util.getIpAddr(request));
             manager.setClientIp("10.120.4.11");
-            String s = manager.processDoneRequestByJson(jsonObject.toJSONString());
+            String s = manager.receiveRequestInfoByJson(jsonObject.toJSONString());
             baseBean.writeLog("变已办结果： " + s);
         }
 
