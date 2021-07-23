@@ -7,7 +7,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" %>
 
 <%
-    // 跟踪信息（修改跟踪状态等） 历史数据获取；本年初 - 本年上个月
+    // 跟踪信息（修改跟踪状态等） 历史数据获取；本年初 - 至今
     BaseBean baseBean = new BaseBean();
     RecordSet recordSet = new RecordSet();
     try {
@@ -19,7 +19,7 @@
         LocalDate end = now.with(TemporalAdjusters.firstDayOfMonth());
 
         String selSql = "select id, xmmc from uf_gzxxb where modedatacreater = '" + userId + "' and tjrq >= '" + start + "' and " +
-                " tjrq < '" + end.toString() + "' and gzjd in (0, 1)";
+                " gzjd in (0, 1)";
         baseBean.writeLog("跟踪信息查询sql： " + selSql);
         recordSet.executeQuery(selSql);
 

@@ -8,7 +8,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" %>
 
 <%
-    // CS2-1工程项目信息表 历史数据获取；本年初 - 本年上个月
+    // CS2-1工程项目信息表 历史数据获取；本年初 - 至今
     BaseBean baseBean = new BaseBean();
     RecordSet recordSet = new RecordSet();
     try {
@@ -18,8 +18,7 @@
         String start = now.getYear() + "-01-01";
         LocalDate end = now.with(TemporalAdjusters.firstDayOfMonth());
 
-        String selSql = "select id, htmcdxwb from uf_htxxb where modedatacreater = '" + userId + "' and tjrq >= '" + start + "' and " +
-                " tjrq < '" + end.toString() + "' and sfywg = 1";
+        String selSql = "select id, htmcdxwb from uf_htxxb where modedatacreater = '" + userId + "' and tjrq >= '" + start + "' and sfywg = 1";
         baseBean.writeLog("工程项目查询sql： " + selSql);
         recordSet.executeQuery(selSql);
 
