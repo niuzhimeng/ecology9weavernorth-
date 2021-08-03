@@ -19,7 +19,7 @@
         LocalDate end = now.with(TemporalAdjusters.firstDayOfMonth());
 
         String selSql = "select id, xmmc from uf_gzxxb where modedatacreater = '" + userId + "' and tjrq >= '" + start + "' and " +
-                " gzjd in (0, 1)";
+                " gzjd in (0, 1, 5)";
         baseBean.writeLog("跟踪信息查询sql： " + selSql);
         recordSet.executeQuery(selSql);
 
