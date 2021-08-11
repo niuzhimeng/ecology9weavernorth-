@@ -14,32 +14,40 @@
     RecordSet recordSet = new RecordSet();
     RecordSet updateSet = new RecordSet();
 
-    String parameter = request.getParameter("");
-
     // 操作批次号
     String batch_code = UUID.randomUUID().toString();
+    // 根目录id - 项目文件目录
+    String rootId = request.getParameter("rootId");
+    // 本次创建目录名称
+    String name = request.getParameter("name");
 
     try {
         baseBean.writeLog("创建目录开始================");
-        String insertSql = "INSERT INTO docseccategory (subcategoryid, categoryname, docmouldid, publishable, replyable, shareable, hashrmres, maxuploadfilesize, maxofficedocfilesize, parentid, weaver_code, batch_code)VALUES(1,?,1,1,1,1,1,5,8,0, ?,?)";
-        String updateSql = "update docseccategory set parentid = ? where id = ?";
+        baseBean.writeLog("根目录id： " + rootId);
+        baseBean.writeLog("name： " + name);
 
-        // 插入目录数据
-        recordSet.executeQuery("select name, code from zhonggong_mulu");
+        String insertSql = "INSERT INTO docseccategory (subcategoryid, categoryname, docmouldid, publishable, replyable, shareable, hashrmres, maxuploadfilesize, maxofficedocfilesize, parentid, weaver_code, batch_code)VALUES(1,?,1,1,1,1,1,5,8, ?,?,?)";
+        String updateSql = "update docseccategory set parentid = ? where id = ? and weaver_code != 'parent'";
+
+        // 插入目录
+        updateSet.executeUpdate(insertSql, name, rootId, "parent", batch_code);
+
+        // 插入该目录下固定的一套目录
+        recordSet.executeQuery("select name, code from zhonggong_mulu order by name");
         while (recordSet.next()) {
-            updateSet.executeUpdate(insertSql, recordSet.getString("name"), recordSet.getString("code"), batch_code);
+            updateSet.executeUpdate(insertSql, recordSet.getString("name"), "0", recordSet.getString("code"), batch_code);
         }
         baseBean.writeLog("插入数据完成================");
 
-        // code - id
+        // 查出本批次新增目录的对应关系code - id
         Map<String, String> map = new HashMap<>();
-        recordSet.executeQuery("select a.id, a.weaver_code from DOCSECCATEGORY a where a.batch_code = '" + batch_code + "'");
+        recordSet.executeQuery("select id, weaver_code from DOCSECCATEGORY  where batch_code = '" + batch_code + "'");
         while (recordSet.next()) {
             if (StringUtils.isNotBlank(recordSet.getString("weaver_code"))) {
                 map.put(recordSet.getString("weaver_code"), recordSet.getString("id"));
             }
         }
-        map.put("parent_best", "1");
+
         baseBean.writeLog("map构件完成================" + JSONObject.toJSONString(map));
 
         // 更新父目录
