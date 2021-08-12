@@ -29,15 +29,26 @@
     String rootId = request.getParameter("rootId");
     // 本次创建目录名称
     String name = request.getParameter("name");
+    // 目录创建人
+    String userId = request.getParameter("userId");
 
     try {
         baseBean.writeLog("创建目录开始================");
         baseBean.writeLog("根目录id： " + rootId);
         baseBean.writeLog("name： " + name);
+        baseBean.writeLog("userId： " + userId);
+        recordSet.executeQuery("select id from docseccategory where id = ?", rootId);
+        if (!recordSet.next()) {
+            out.clear();
+            out.print("创建失败： " + rootId + " 不存在");
+            return;
+        }
 
-        User userNew = getUser();
+        User userNew = getUser(userId);
         DocSecCategoryService docSecCategoryService = ServiceUtil.getService(DocSecCategoryServiceImpl.class, userNew);
+        // 填充目录编码与批次编码，用于层级的更新
         String insertSql = "update docseccategory set weaver_code = ?, batch_code = ? where id = ?";
+        // 更新父节点
         String updateSql = "update docseccategory set parentid = ? where id = ? and weaver_code != 'parent'";
 
         // 插入目录
@@ -46,6 +57,7 @@
         params.put("categoryname", name);
         params.put("subcompanyid", "0");
         params.put("extendParentAttr", "1");
+        // 返回格式： {"api_status":true,"id":1421}
         Map<String, Object> returnMap = docSecCategoryService.addDocMainCategory(params);
         baseBean.writeLog("returnMap: " + JSONObject.toJSONString(returnMap));
         Boolean api_status = (Boolean) returnMap.get("api_status");
@@ -58,14 +70,13 @@
         baseBean.writeLog("返回id： " + id);
         updateSet.executeUpdate(insertSql, "parent", batch_code, id);
 
-        // 插入该目录下固定的一套目录
+        // 插入该目录下固定的一套目录 85个左右
         recordSet.executeQuery("select name, code from zhonggong_mulu order by name");
         while (recordSet.next()) {
             params.put("parentid", rootId);
             params.put("categoryname", recordSet.getString("name"));
-            params.put("subcompanyid", "0");
-            params.put("extendParentAttr", "1");
 
+            // 调用系统方法创建目录 速度较慢，85个目录预计25-30秒
             Map<String, Object> returnMapFor = docSecCategoryService.addDocMainCategory(params);
             updateSet.executeUpdate(insertSql, recordSet.getString("code"), batch_code, returnMapFor.get("id"));
         }
@@ -80,7 +91,7 @@
             }
         }
 
-        baseBean.writeLog("map构件完成================" + JSONObject.toJSONString(map));
+        baseBean.writeLog("map构建完成================" + JSONObject.toJSONString(map));
 
         // 更新父目录
         recordSet.executeQuery("select a.id, b.parentcode from DOCSECCATEGORY a left join zhonggong_mulu b on a.weaver_code = b.code where a.batch_code ='" + batch_code + "'");
@@ -105,56 +116,52 @@
 %>
 
 <%!
-    private User getUser() {
-        RecordSet recordSet = new RecordSet();
+    private User getUser(String userId) {
         User userNew = new User();
-        try {
-            String loginId = "nzm";
-            recordSet.executeQuery("select * from HrmResource where loginid = lower('" + loginId + "') and status < 4");
-            recordSet.next();
 
-            userNew.setUid(recordSet.getInt("id"));
-            userNew.setLoginid(recordSet.getString("loginid"));
-            userNew.setFirstname(recordSet.getString("firstname"));
-            userNew.setLastname(recordSet.getString("lastname"));
-            userNew.setAliasname(recordSet.getString("aliasname"));
-            userNew.setTitle(recordSet.getString("title"));
-            userNew.setTitlelocation(recordSet.getString("titlelocation"));
-            userNew.setSex(recordSet.getString("sex"));
-            userNew.setPwd(recordSet.getString("password"));
-            String languageidweaver = recordSet.getString("systemlanguage");
-            userNew.setLanguage(Util.getIntValue(languageidweaver, 0));
-            userNew.setTelephone(recordSet.getString("telephone"));
-            userNew.setMobile(recordSet.getString("mobile"));
-            userNew.setMobilecall(recordSet.getString("mobilecall"));
-            userNew.setEmail(recordSet.getString("email"));
-            userNew.setCountryid(recordSet.getString("countryid"));
-            userNew.setLocationid(recordSet.getString("locationid"));
-            userNew.setResourcetype(recordSet.getString("resourcetype"));
-            userNew.setStartdate(recordSet.getString("startdate"));
-            userNew.setEnddate(recordSet.getString("enddate"));
-            userNew.setContractdate(recordSet.getString("contractdate"));
-            userNew.setJobtitle(recordSet.getString("jobtitle"));
-            userNew.setJobgroup(recordSet.getString("jobgroup"));
-            userNew.setJobactivity(recordSet.getString("jobactivity"));
-            userNew.setJoblevel(recordSet.getString("joblevel"));
-            userNew.setSeclevel(recordSet.getString("seclevel"));
-            userNew.setUserDepartment(Util.getIntValue(recordSet.getString("departmentid"), 0));
-            userNew.setUserSubCompany1(Util.getIntValue(recordSet.getString("subcompanyid1"), 0));
-            userNew.setUserSubCompany2(Util.getIntValue(recordSet.getString("subcompanyid2"), 0));
-            userNew.setUserSubCompany3(Util.getIntValue(recordSet.getString("subcompanyid3"), 0));
-            userNew.setUserSubCompany4(Util.getIntValue(recordSet.getString("subcompanyid4"), 0));
-            userNew.setManagerid(recordSet.getString("managerid"));
-            userNew.setAssistantid(recordSet.getString("assistantid"));
-            userNew.setPurchaselimit(recordSet.getString("purchaselimit"));
-            userNew.setCurrencyid(recordSet.getString("currencyid"));
-            userNew.setLastlogindate(recordSet.getString("currentdate"));
-            userNew.setLogintype("1");
-            userNew.setAccount(recordSet.getString("account"));
+        RecordSet recordSet = new RecordSet();
+        recordSet.executeQuery("select * from HrmResource where id = lower('" + userId + "') and status < 4");
+        recordSet.next();
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        userNew.setUid(recordSet.getInt("id"));
+        userNew.setLoginid(recordSet.getString("loginid"));
+        userNew.setFirstname(recordSet.getString("firstname"));
+        userNew.setLastname(recordSet.getString("lastname"));
+        userNew.setAliasname(recordSet.getString("aliasname"));
+        userNew.setTitle(recordSet.getString("title"));
+        userNew.setTitlelocation(recordSet.getString("titlelocation"));
+        userNew.setSex(recordSet.getString("sex"));
+        userNew.setPwd(recordSet.getString("password"));
+        String languageidweaver = recordSet.getString("systemlanguage");
+        userNew.setLanguage(Util.getIntValue(languageidweaver, 0));
+        userNew.setTelephone(recordSet.getString("telephone"));
+        userNew.setMobile(recordSet.getString("mobile"));
+        userNew.setMobilecall(recordSet.getString("mobilecall"));
+        userNew.setEmail(recordSet.getString("email"));
+        userNew.setCountryid(recordSet.getString("countryid"));
+        userNew.setLocationid(recordSet.getString("locationid"));
+        userNew.setResourcetype(recordSet.getString("resourcetype"));
+        userNew.setStartdate(recordSet.getString("startdate"));
+        userNew.setEnddate(recordSet.getString("enddate"));
+        userNew.setContractdate(recordSet.getString("contractdate"));
+        userNew.setJobtitle(recordSet.getString("jobtitle"));
+        userNew.setJobgroup(recordSet.getString("jobgroup"));
+        userNew.setJobactivity(recordSet.getString("jobactivity"));
+        userNew.setJoblevel(recordSet.getString("joblevel"));
+        userNew.setSeclevel(recordSet.getString("seclevel"));
+        userNew.setUserDepartment(Util.getIntValue(recordSet.getString("departmentid"), 0));
+        userNew.setUserSubCompany1(Util.getIntValue(recordSet.getString("subcompanyid1"), 0));
+        userNew.setUserSubCompany2(Util.getIntValue(recordSet.getString("subcompanyid2"), 0));
+        userNew.setUserSubCompany3(Util.getIntValue(recordSet.getString("subcompanyid3"), 0));
+        userNew.setUserSubCompany4(Util.getIntValue(recordSet.getString("subcompanyid4"), 0));
+        userNew.setManagerid(recordSet.getString("managerid"));
+        userNew.setAssistantid(recordSet.getString("assistantid"));
+        userNew.setPurchaselimit(recordSet.getString("purchaselimit"));
+        userNew.setCurrencyid(recordSet.getString("currencyid"));
+        userNew.setLastlogindate(recordSet.getString("currentdate"));
+        userNew.setLogintype("1");
+        userNew.setAccount(recordSet.getString("account"));
+
         return userNew;
     }
 
