@@ -11,10 +11,7 @@
 <%@ page import="weaver.hrm.User" %>
 <%@ page import="com.engine.common.util.ServiceUtil" %>
 <%@ page import="weaver.general.Util" %>
-<%@ page import="weaver.docs.category.SubCategoryComInfo" %>
-<%@ page import="weaver.docs.category.SecCategoryComInfo" %>
-<%@ page import="weaver.docs.category.SecCategoryDocPropertiesComInfo" %>
-<%@ page import="weaver.docs.category.DocTreelistComInfo" %>
+<%@ page import="weaver.docs.category.*" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" %>
 
 <%
@@ -100,10 +97,14 @@
         }
         baseBean.writeLog("更新父目录完成================");
 
+        long start = System.currentTimeMillis();
         new SubCategoryComInfo().removeMainCategoryCache();
         new SecCategoryComInfo().removeMainCategoryCache();
         new SecCategoryDocPropertiesComInfo().removeCache();
         new DocTreelistComInfo().removeGetDocListInfordCache();
+        new MainCategoryComInfo().removeMainCategoryCache();
+        long end = System.currentTimeMillis();
+        baseBean.writeLog("清缓存耗时： " + (end - start) + "毫秒");
 
         out.clear();
         out.print("创建完成");
